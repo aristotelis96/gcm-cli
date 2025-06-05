@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo "Choose commit type:"
+options=(
+  "🐞 - fix"
+  "✨ - feat"
+  "📝 - docs"
+  "⚡ - perf"
+  "♻️ - refactor"
+  "🚀 - chore"
+)
+
+select opt in "${options[@]}"
+do
+  if [[ -n "$opt" ]]; then
+    echo "You chose: $opt"
+    break
+  else
+    echo "Invalid choice, try again."
+  fi
+done
+
+read -p "Enter commit message: " msg
+
+full_message="[$opt] $msg"
+
+git commit -m "$full_message"
