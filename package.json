@@ -1,0 +1,17 @@
+{
+  "name": "gcm-cli",
+  "version": "1.0.0",
+  "description": "A friendly interactive Git commit CLI",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "keywords": [],
+  "author": "Aristotelis Vontzalidis <aris.vontz@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "fuzzysort": "^3.1.0",
+    "inquirer": "^8.0.3",
+    "inquirer-autocomplete-prompt": "^3.0.1"
+  }
+}

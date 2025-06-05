@@ -1,0 +1,19 @@
+
+gcm() {
+  node ~/gcm-cli/index.mjs "$@"
+}
+
+# Completion function
+_gcm() {
+  local -a opts
+  opts=(
+    '--amend:Amend the previous commit'
+    '--no-edit:Commit without changing the message'
+  )
+  _describe 'option' opts
+}
+
+
+# Attach completion to the function
+compdef _gcm gcm
+
