@@ -1,16 +1,26 @@
 #!/usr/bin/env node
 
-import inquirer from "inquirer";
-import autocomplete from "inquirer-autocomplete-prompt";
+import { search, editor } from "@inquirer/prompts";
 import { execSync } from "child_process";
 import fuzzysort from "fuzzysort";
+import { Command } from "commander";
 
-// Register autocomplete prompt
-inquirer.registerPrompt("autocomplete", autocomplete);
+const program = new Command();
 
-// Check for --amend flag
-const isAmend = process.argv.includes("--amend");
-const isNoEdit = process.argv.includes("--no-edit");
+program
+  .name("gcm")
+  .description("A friendly interactive Git commit CLI")
+  .option(
+    "-m, --message <msg>",
+    "Provide commit message directly (skips editor)"
+  )
+  .option("--amend", "Amend the previous commit")
+  .option("--no-edit", "Use previous commit message without editing", true)
+  .helpOption("-h, --help", "Show help");
+
+program.parse(process.argv);
+const options = program.opts();
+const { edit: editMessage, message: passedMessage, amend: isAmend } = options;
 
 const choices = [
   { name: "✨ Feature", value: "✨ - feature" },
@@ -32,7 +42,7 @@ const choices = [
 ];
 
 async function main() {
-  if (isAmend && isNoEdit) {
+  if (isAmend && !editMessage) {
     try {
       execSync(`git commit --amend --no-edit`, { stdio: "inherit" });
     } catch (error) {
@@ -41,37 +51,40 @@ async function main() {
     return;
   }
 
-  const { type } = await inquirer.prompt([
-    {
-      type: "autocomplete",
-      name: "type",
-      message: "Select commit type (search or use arrows):",
-      source: async (_, input) => {
-        if (!input) {
-          return choices;
-        }
-        input = input || "";
-        const results = fuzzysort.go(input, choices, {
-          key: "name",
-          limit: 10,
-        });
-        return results.map((res) => res.obj);
-      },
+  const type = await search({
+    message: "Select an npm package",
+    source: async (input, { signal }) => {
+      if (!input) {
+        return choices;
+      }
+      input = input || "";
+      const results = fuzzysort.go(input, choices, {
+        key: "name",
+        limit: 10,
+      });
+      return results.map((res) => res.obj);
     },
-  ]);
-
-  const { message } = await inquirer.prompt({
-    type: "input",
-    name: "message",
-    message: "Enter commit message:",
-    validate: (input) => input.trim() !== "" || "Message cannot be empty",
   });
 
-  const fullMessage = `[${type}] ${message}`;
+  let message = passedMessage;
+  if (!message) {
+    const response = await editor({
+      message: "Enter commit message",
+      default: "",
+      waitForUseInput: false,
+    });
+    if (response === "") {
+      console.error("Git commit failed. Empty commit message.");
+      return;
+    }
+    message = response;
+  }
+
+  const fullMessage = `[${type}] ${message.trim()}`;
 
   let command = `git commit -m "${fullMessage.replace(/"/g, '\\"')}"`;
   if (isAmend) command += " --amend";
-  if (isNoEdit) command += " --no-edit";
+  if (!editMessage) command += " --no-edit";
 
   try {
     execSync(command, {
