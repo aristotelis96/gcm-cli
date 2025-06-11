@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { search, editor } from "@inquirer/prompts";
+import { editor, search } from "@inquirer/prompts";
 import { execSync } from "child_process";
-import fuzzysort from "fuzzysort";
 import { Command } from "commander";
+import fuzzysort from "fuzzysort";
 
 const program = new Command();
 
@@ -39,6 +39,7 @@ const choices = [
   { name: "⏪ Revert", value: "⏪ - revert" },
   { name: "📍 Checkpoint", value: "📍 - checkpoint" },
   { name: "🛠️ Other", value: "🛠️ - other" },
+  { name: "🔹 Minor", value: "🔹 - minor" },
 ];
 
 async function main() {
